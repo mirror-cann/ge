@@ -32,6 +32,9 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/file_utils.h"
 #include "graph/utils/graph_utils.h"
+#include <google/protobuf/text_format.h>
+#include "proto/ge_ir.pb.h"
+#include "proto/onnx/ge_onnx.pb.h"
 #include <cstdio>
 #include <sstream>
 #include <system_error>
@@ -347,6 +350,8 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",
+      "fake_test/data/model_0/debug/ge_onnx_00000000_graph_0_g1.pbtxt",
+      "fake_test/data/model_0/debug/ge_proto_00000000_graph_0_g1.txt",
       "fake_test/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
@@ -496,6 +501,8 @@ TEST_F(Om2PackageHelperUt, SaveToOmModel_SaveModeFalse_ReturnsModelBuffer) {
       "g1/data/kernels_npu_arch/add1_faked_kernel.o",
       "g1/data/model_0/model_meta.json",
       "g1/data/model_0/debug/op_attr.json",
+      "g1/data/model_0/debug/ge_onnx_00000000_graph_0_g1.pbtxt",
+      "g1/data/model_0/debug/ge_proto_00000000_graph_0_g1.txt",
       "g1/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
@@ -1434,5 +1441,135 @@ TEST_F(Om2PackageHelperUt, SaveModelInfo_WithMbatchOriginInputDims_SerializesOri
   ASSERT_EQ(inputs.size(), 1U);
   EXPECT_EQ(inputs[0].at("origin_input_dims"), JsonFile::json({-1, 2, 3, 4}));
   EXPECT_EQ(inputs[0].at("shape"), JsonFile::json({1}));
+}
+
+// ============================================================================
+// SaveGraphDebugFiles tests
+// ============================================================================
+TEST_F(Om2PackageHelperUt, SaveGraphDebugFiles_Ok_ValidGraph) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, "test_debug_valid.om2"});
+  SyncKernelNameForAllModels(ge_root_model);
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+
+  uint32_t model_buf_size = 0;
+  const auto model_buf = GetBinDataFromFile(output_file, model_buf_size);
+  RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
+  ASSERT_TRUE(archive.IsGood());
+
+  // Verify ge_proto_*.txt exists and parses as ModelDef
+  const auto file_list = archive.ListFiles();
+  std::string proto_entry;
+  std::string onnx_entry;
+  for (const auto &f : file_list) {
+    if (f.find("debug/ge_proto_") != std::string::npos && f.find(".txt") != std::string::npos) {
+      proto_entry = f;
+    }
+    if (f.find("debug/ge_onnx_") != std::string::npos && f.find(".pbtxt") != std::string::npos) {
+      onnx_entry = f;
+    }
+  }
+  ASSERT_FALSE(proto_entry.empty()) << "ge_proto_*.txt not found in OM2";
+  ASSERT_FALSE(onnx_entry.empty()) << "ge_onnx_*.pbtxt not found in OM2";
+
+  size_t proto_size = 0;
+  const auto proto_buf = archive.ExtractToMem(proto_entry, proto_size);
+  ASSERT_NE(proto_buf, nullptr);
+  ASSERT_GT(proto_size, 0U);
+
+  ge::proto::ModelDef model_def;
+  const std::string proto_str(reinterpret_cast<const char *>(proto_buf.get()), proto_size);
+  ASSERT_TRUE(google::protobuf::TextFormat::ParseFromString(proto_str, &model_def));
+  EXPECT_GE(model_def.graph_size(), 1);
+  EXPECT_GT(model_def.graph(0).op_size(), 0);
+  EXPECT_NE(model_def.attr().find(ATTR_MODEL_ATC_CMDLINE), model_def.attr().end());
+  const auto om_info_iter = model_def.attr().find("om_info_list");
+  ASSERT_NE(om_info_iter, model_def.attr().end());
+  ASSERT_EQ(om_info_iter->second.list().i_size(), 5);
+  for (const auto &graph_def : model_def.graph()) {
+    for (const auto &op_def : graph_def.op()) {
+      if (op_def.type() == "Const" || op_def.type() == "Constant") {
+        EXPECT_EQ(op_def.attr().find(ATTR_NAME_WEIGHTS), op_def.attr().end());
+      }
+    }
+  }
+
+  // Verify ge_onnx_*.pbtxt parses as ONNX ModelProto
+  size_t onnx_size = 0;
+  const auto onnx_buf = archive.ExtractToMem(onnx_entry, onnx_size);
+  ASSERT_NE(onnx_buf, nullptr);
+  ASSERT_GT(onnx_size, 0U);
+
+  ge::onnx::ModelProto onnx_proto;
+  const std::string onnx_str(reinterpret_cast<const char *>(onnx_buf.get()), onnx_size);
+  ASSERT_TRUE(google::protobuf::TextFormat::ParseFromString(onnx_str, &onnx_proto));
+  ASSERT_TRUE(onnx_proto.has_graph());
+  EXPECT_GT(onnx_proto.graph().node_size(), 0);
+}
+
+// ============================================================================
+// ExtractGraphProtoTxt tests
+// ============================================================================
+TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Ok_FromGeneratedOm2) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, "test_extract_ok.om2"});
+  SyncKernelNameForAllModels(ge_root_model);
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+
+  uint32_t file_size = 0;
+  const auto file_buf = GetBinDataFromFile(output_file, file_size);
+  ASSERT_NE(file_buf, nullptr);
+
+  std::string txt_out;
+  ASSERT_EQ(Om2PackageHelper::ExtractGraphProtoTxt(file_buf.get(), file_size, txt_out), SUCCESS);
+  EXPECT_GT(txt_out.size(), 0U);
+
+  ge::proto::ModelDef model_def;
+  ASSERT_TRUE(google::protobuf::TextFormat::ParseFromString(txt_out, &model_def));
+  EXPECT_GE(model_def.graph_size(), 1);
+}
+
+TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Fail_NullModelData) {
+  std::string txt_out;
+  EXPECT_NE(Om2PackageHelper::ExtractGraphProtoTxt(nullptr, 100U, txt_out), SUCCESS);
+}
+
+TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Fail_ZeroLen) {
+  uint8_t dummy = 0;
+  std::string txt_out;
+  EXPECT_NE(Om2PackageHelper::ExtractGraphProtoTxt(&dummy, 0U, txt_out), SUCCESS);
+}
+
+TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Fail_InvalidZip) {
+  const uint8_t garbage[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01, 0x02, 0x03};
+  std::string txt_out;
+  EXPECT_NE(Om2PackageHelper::ExtractGraphProtoTxt(garbage, sizeof(garbage), txt_out), SUCCESS);
+}
+
+TEST_F(Om2PackageHelperUt, ExtractGraphProtoTxt_Fail_NoProtoTxt) {
+  const std::string zip_path = PathUtils::Join({test_work_dir, "no_proto.om2"});
+  {
+    ZipArchiveWriter writer(zip_path);
+    ASSERT_TRUE(writer.IsMemFileOpened());
+    const std::string manifest = R"({"om2_version":"0","model_num":1})";
+    ASSERT_TRUE(writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+    ModelBufferData buf;
+    ASSERT_TRUE(writer.SaveModelData(buf, true));
+  }
+
+  uint32_t file_size = 0;
+  const auto file_buf = GetBinDataFromFile(zip_path, file_size);
+  ASSERT_NE(file_buf, nullptr);
+
+  std::string txt_out;
+  EXPECT_NE(Om2PackageHelper::ExtractGraphProtoTxt(file_buf.get(), file_size, txt_out), SUCCESS);
 }
 }  // namespace ge

@@ -214,6 +214,7 @@ target_include_directories(ge_common PRIVATE
     ${AIR_CODE_DIR}/inc/framework
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/graphengine_protos
+    ${CMAKE_BINARY_DIR}/proto/metadef_protos
     ${ASCGEN_DIR}/inc
     ${TOP_DIR}/metadef/inc
     ${TOP_DIR}/runtime/include/external
@@ -414,6 +415,7 @@ target_include_directories(ge_common PRIVATE
     ${AIR_CODE_DIR}/inc/framework
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/proto/graphengine_protos
+    ${CMAKE_BINARY_DIR}/proto/metadef_protos
     ${ASCGEN_DIR}/inc
     ${TOP_DIR}/runtime/include/external
     ${TOP_DIR}/runtime/include/external/acl/error_codes

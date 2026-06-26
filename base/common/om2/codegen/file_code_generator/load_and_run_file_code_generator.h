@@ -37,6 +37,12 @@ class LoadAndRunFileCodeGenerator : public Om2ModelClassGeneratorBase {
   Status BuildLoadBody(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model,
                        const std::vector<TaskCodeBuilderPtr> &task_code_builders);
   Status BuildRunBodyImpl(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model, bool is_async);
+  void BuildRunBodyDeclareTensorIoVars(std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
+                                       const VarRef &input_data, const VarRef &output_data);
+  void BuildRunBodyProcessInputsAndAddrRefresh(std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
+                                                const VarRef &exe_stream, bool is_async);
+  void BuildRunBodyCopyOutputs(std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
+                                const VarRef &exe_stream, bool is_async);
   Status BuildCommonHelperFunctions(std::vector<DeclNode *> &items) const;
   Status BuildDispatchOp(std::vector<DeclNode *> &items,
                          const std::vector<TaskCodeBuilderPtr> &task_code_builders) const;

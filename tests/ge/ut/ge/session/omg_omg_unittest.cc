@@ -15,6 +15,9 @@
 #include "common/plugin/ge_make_unique_util.h"
 #include "proto/ge_ir.pb.h"
 #include "framework/omg/omg.h"
+#include "common/helper/om2/zip_archive_writer.h"
+#include "common/helper/om2/om2_package_contants.h"
+#include <google/protobuf/text_format.h>
 #include "ge/ge_api_error_codes.h"
 #include "framework/common/framework_types_internal.h"
 #include "graph/utils//graph_utils.h"
@@ -810,5 +813,81 @@ TEST_F(UtestOmg, CheckInputShapeNodeINVALID) {
   domi::WeightsParserFactory::Instance()->creator_map_.clear();
   system("rm -rf ./ut_graph1.txt");
   system("rm -rf ./ut_graph2.txt");
+}
+
+// ============================================================================
+// ConvertOm OM2 branch tests
+// ============================================================================
+namespace {
+std::string CreateMinimalOm2File(const std::string &path, const std::string &proto_content) {
+  ZipArchiveWriter writer(path);
+  if (!writer.IsMemFileOpened()) { return ""; }
+  const std::string manifest = R"({"om2_version":"0","model_num":1})";
+  writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false);
+  writer.WriteBytes("data/model_0/debug/ge_proto_00000000_graph_1_test.txt",
+                   proto_content.data(), proto_content.size(), true);
+  ModelBufferData buf;
+  writer.SaveModelData(buf, true);
+  return path;
+}
+
+std::string BuildValidProtoTxt() {
+  ge::proto::ModelDef model_def;
+  model_def.set_name("test_model");
+  auto *graph = model_def.add_graph();
+  graph->set_name("main_graph");
+  auto *op = graph->add_op();
+  op->set_name("data0");
+  op->set_type("Data");
+  return model_def.DebugString();
+}
+}  // namespace
+
+TEST_F(UtestOmg, ConvertOm_Ok_Om2ToJson) {
+  const std::string om2_path = "./ut_om2_valid.om2";
+  const std::string json_path = "./ut_om2_valid.json";
+  const std::string proto_txt = BuildValidProtoTxt();
+  ASSERT_FALSE(CreateMinimalOm2File(om2_path, proto_txt).empty());
+
+  EXPECT_EQ(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
+
+  std::ifstream f(json_path);
+  EXPECT_TRUE(f.good());
+  system("rm -rf ./ut_om2_valid.om2 ./ut_om2_valid.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Fail_Om2NotConvertToJson) {
+  const std::string om2_path = "./ut_om2_no_convert.om2";
+  const std::string proto_txt = BuildValidProtoTxt();
+  ASSERT_FALSE(CreateMinimalOm2File(om2_path, proto_txt).empty());
+
+  EXPECT_NE(ConvertOm(om2_path.c_str(), nullptr, false), SUCCESS);
+  system("rm -rf ./ut_om2_no_convert.om2");
+}
+
+TEST_F(UtestOmg, ConvertOm_Fail_Om2NoProtoTxt) {
+  const std::string om2_path = "./ut_om2_no_proto.om2";
+  const std::string json_path = "./ut_om2_no_proto.json";
+  {
+    ZipArchiveWriter writer(om2_path);
+    ASSERT_TRUE(writer.IsMemFileOpened());
+    const std::string manifest = R"({"om2_version":"0","model_num":1})";
+    writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false);
+    ModelBufferData buf;
+    writer.SaveModelData(buf, true);
+  }
+
+  EXPECT_NE(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
+  system("rm -rf ./ut_om2_no_proto.om2 ./ut_om2_no_proto.json");
+}
+
+TEST_F(UtestOmg, ConvertOm_Fail_Om2InvalidProtoTxt) {
+  const std::string om2_path = "./ut_om2_bad_proto.om2";
+  const std::string json_path = "./ut_om2_bad_proto.json";
+  const std::string bad_content = "this is not a valid protobuf {{{}}}";
+  ASSERT_FALSE(CreateMinimalOm2File(om2_path, bad_content).empty());
+
+  EXPECT_NE(ConvertOm(om2_path.c_str(), json_path.c_str(), true), SUCCESS);
+  system("rm -rf ./ut_om2_bad_proto.om2 ./ut_om2_bad_proto.json");
 }
 }  // namespace ge

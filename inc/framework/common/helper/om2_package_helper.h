@@ -35,6 +35,12 @@ class GE_FUNC_VISIBILITY Om2PackageHelper : public ModelSaveHelper {
   static Status RelocateExternalWeights(const std::string &output_file_name, const ModelBufferData &model,
                                         ModelBufferData &relocated_model, bool &relocated);
 
+  /// @brief Extract ge_proto_*.txt content from an OM2 (ZIP) model buffer.
+  /// @param model_data  Pointer to the OM2 ZIP data in memory.
+  /// @param model_len   Length of the OM2 ZIP data.
+  /// @param txt_out     Output string to receive the proto txt content.
+  static Status ExtractGraphProtoTxt(const void *model_data, size_t model_len, std::string &txt_out);
+
  private:
   static Status SaveConstants(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
                               const size_t model_index, const std::vector<Om2ConstMeta> &const_metas,
@@ -45,6 +51,12 @@ class GE_FUNC_VISIBILITY Om2PackageHelper : public ModelSaveHelper {
                               const size_t model_index);
   static Status SaveOpAttrJson(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
                                const size_t model_index);
+  static Status SaveOnnxGraphPbtxt(std::shared_ptr<ZipArchiveWriter> &zip_writer,
+                                   const ComputeGraphPtr &graph, const size_t model_index);
+  static Status SaveGeGraphProtoTxt(std::shared_ptr<ZipArchiveWriter> &zip_writer,
+                                    const GeModelPtr &ge_model, const size_t model_index);
+  static Status SaveGraphDebugFiles(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
+                                    const size_t model_index);
   static Status SaveManifest(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeRootModelPtr &ge_root_model);
   static Status SaveCodegenArtifacts(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
                                      const size_t model_index, std::vector<Om2ConstMeta> &const_metas);

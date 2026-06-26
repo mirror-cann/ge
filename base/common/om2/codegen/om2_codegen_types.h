@@ -134,6 +134,7 @@ struct ModelIoEntry {
   uint32_t update_host_args_index{0U};
   bool is_input{true};
   bool is_addr_refreshable{true};
+  int64_t addr_offset{0};
 };
 
 struct ModelIoSemantic {

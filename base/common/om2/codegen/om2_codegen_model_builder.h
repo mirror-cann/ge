@@ -28,6 +28,8 @@ struct InputModelIoItem {
 struct OutputModelIoItem {
   uint32_t index{0U};
   int64_t memory_offset{0};
+  int64_t addr_offset{0};
+  bool is_addr_refreshable{true};
 };
 
 class Om2CodegenModelBuilder {
@@ -46,6 +48,10 @@ class Om2CodegenModelBuilder {
   Status CollectModelIoItems(Om2CodegenModel &codegen_model, const ComputeGraphPtr &compute_graph,
                              std::vector<InputModelIoItem> &input_items,
                              std::vector<OutputModelIoItem> &output_items) const;
+  Status CollectNetOutputIoItems(const Node &node, const OpDescPtr &op_desc,
+                                  uint32_t &next_model_output_index,
+                                  std::vector<OutputModelIoItem> &output_items,
+                                  std::set<int64_t> &io_offsets) const;
   Status BuildConstInputs(const GeModelPtr &model, const std::vector<TaskCodeBuilderPtr> &task_builders,
                           Om2CodegenModel &codegen_model, Om2ConstMetas &const_metas);
   Status BuildFileConstInputs(const GeModelPtr &model, Om2CodegenModel &codegen_model, Om2ConstMetas &const_metas);

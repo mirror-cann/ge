@@ -11,6 +11,7 @@
 #include "common/om2/codegen/file_code_generator/load_and_run_file_code_generator.h"
 
 #include <iomanip>
+#include <set>
 #include <sstream>
 #include <map>
 #include <typeindex>
@@ -137,43 +138,17 @@ Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body
   auto exe_stream = ast_.Var("aclrtStream &", "exe_stream");
   auto body_item = is_async ? ast_.Str("RunAsync begin") : ast_.Str("Run begin");
   body.push_back(ast_.Call("OM2_LOGI", {body_item}));
-  body.push_back(ast_.If((input_count != "om2::INPUT_NUM") || (output_count != "om2::OUTPUT_NUM"),
-                         {
-                             ast_.Return("ACL_ERROR_FAILURE"),
-                         }));
-  uint32_t input_data_index = 0U;
-  uint32_t output_data_index = 0U;
-  for (const auto &entry : codegen_model.model_io.entries) {
-    std::string tensor_var_name = "";
-    std::string addr_var_name = "";
-    if (entry.is_input) {
-      tensor_var_name = "input_data_" + std::to_string(input_data_index) + "_tensor";
-      addr_var_name = "dev_input" + std::to_string(input_data_index) + "_ptr";
-      input_data_index++;
-    } else {
-      tensor_var_name = "output_data_" + std::to_string(output_data_index) + "_tensor";
-      addr_var_name = "dev_output" + std::to_string(output_data_index) + "_ptr";
-      output_data_index++;
-    }
-    auto tensor = ast_.Var("auto", tensor_var_name);
-    body.push_back(ast_.VarDecl(
-        tensor, ast_.ReinterpretCast("gert::Tensor *", (entry.is_input ? input_data : output_data)[entry.index])));
-    if (entry.is_addr_refreshable) {
-      body.push_back(ChkStatus(args_table_.Attr("UpdateHostArgs")(
-          entry.update_host_args_index, ast_.ReinterpretCast("uintptr_t", tensor.Arrow("GetAddr")()))));
-    } else {
-      auto dev_addr = ast_.Var("auto", addr_var_name);
-      body.push_back(ast_.VarDecl(dev_addr, GetAddr(ast_.Var("void *", "total_dev_mem_ptr_"), entry.memory_offset)));
-      if (is_async) {
-        body.push_back(
-            ChkStatus(AclrtMemcpyAsync(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
-                                       tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE", exe_stream)));
-      } else {
-        body.push_back(ChkStatus(AclrtMemcpy(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
-                                             tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE")));
-      }
-    }
-  }
+  body.push_back(ast_.If((input_count != "om2::INPUT_NUM") || (output_count != "om2::OUTPUT_NUM"), {
+      ast_.Return("ACL_ERROR_FAILURE"),
+  }));
+  // 声明 input_data_N_tensor / output_data_N_tensor 变量（按 index 去重）。
+  BuildRunBodyDeclareTensorIoVars(body, codegen_model.model_io.entries, input_data, output_data);
+
+  // 可刷新的 entry（无论输入输出）调 UpdateHostArgs 刷新 producer 地址；
+  // 不可刷新的输入 entry 从用户 buffer Memcpy 到 device 地址；
+  // 不可刷新的输出 entry 此处跳过，由 BuildRunBodyCopyOutputs 执行后拷回。
+  BuildRunBodyProcessInputsAndAddrRefresh(body, codegen_model.model_io.entries, exe_stream, is_async);
+
   body.push_back(ast_.BlankLine());
   body.push_back(ChkStatus(args_table_.Attr("CopyArgsToDevice")()));
   if (is_async) {
@@ -181,11 +156,92 @@ Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body
   } else {
     body.push_back(ChkStatus(AclmdlRIExecute(model_handle_, ast_.Var("int32_t", "stream_sync_timeout"))));
   }
+
+  // 执行后：非输入、非地址刷新的输出从 device 拷回用户 buffer。
+  BuildRunBodyCopyOutputs(body, codegen_model.model_io.entries, exe_stream, is_async);
+
   body.push_back(ast_.BlankLine());
   auto done_item = is_async ? ast_.Str("RunAsync done") : ast_.Str("Run done");
   body.push_back(ast_.Call("OM2_LOGI", {done_item}));
   body.push_back(ast_.Return("ACL_SUCCESS"));
   return SUCCESS;
+}
+
+void LoadAndRunFileCodeGenerator::BuildRunBodyDeclareTensorIoVars(
+    std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
+    const VarRef &input_data, const VarRef &output_data) {
+  std::set<uint32_t> declared_input_indices;
+  std::set<uint32_t> declared_output_indices;
+  for (const auto &entry : entries) {
+    std::string tensor_var_name;
+    bool should_declare_tensor = false;
+    if (entry.is_input) {
+      tensor_var_name = "input_data_" + std::to_string(entry.index) + "_tensor";
+      should_declare_tensor = declared_input_indices.insert(entry.index).second;
+    } else {
+      tensor_var_name = "output_data_" + std::to_string(entry.index) + "_tensor";
+      should_declare_tensor = declared_output_indices.insert(entry.index).second;
+    }
+    if (should_declare_tensor) {
+      auto tensor = ast_.Var("auto", tensor_var_name);
+      body.push_back(ast_.VarDecl(tensor, ast_.ReinterpretCast("gert::Tensor *",
+          (entry.is_input ? input_data : output_data)[entry.index])));
+    }
+  }
+}
+
+void LoadAndRunFileCodeGenerator::BuildRunBodyProcessInputsAndAddrRefresh(
+    std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
+    const VarRef &exe_stream, bool is_async) {
+  for (const auto &entry : entries) {
+    const std::string tensor_var_name = entry.is_input ?
+        ("input_data_" + std::to_string(entry.index) + "_tensor") :
+        ("output_data_" + std::to_string(entry.index) + "_tensor");
+    auto tensor = ast_.Var("auto", tensor_var_name);
+    if (entry.is_addr_refreshable) {
+      // OM2 临时处理：NoTask 连续输入复用输出展开为多段地址刷新。
+      ExprRef addr_expr = ast_.ReinterpretCast("uintptr_t", tensor.Arrow("GetAddr")());
+      if (entry.addr_offset != 0) {
+        addr_expr = addr_expr + entry.addr_offset;
+      }
+      body.push_back(ChkStatus(args_table_.Attr("UpdateHostArgs")(entry.update_host_args_index, addr_expr)));
+    } else if (entry.is_input) {
+      const std::string addr_var_name = "dev_input" + std::to_string(entry.index) + "_ptr";
+      auto dev_addr = ast_.Var("auto", addr_var_name);
+      body.push_back(ast_.VarDecl(dev_addr, GetAddr(ast_.Var("void *", "total_dev_mem_ptr_"), entry.memory_offset)));
+      if (is_async) {
+        body.push_back(ChkStatus(AclrtMemcpyAsync(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
+                                                   tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE",
+                                                   exe_stream)));
+      } else {
+        body.push_back(ChkStatus(AclrtMemcpy(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
+                                             tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE")));
+      }
+    }
+  }
+}
+
+void LoadAndRunFileCodeGenerator::BuildRunBodyCopyOutputs(
+    std::vector<BodyItem> &body, const std::vector<ModelIoEntry> &entries,
+    const VarRef &exe_stream, bool is_async) {
+  for (const auto &entry : entries) {
+    if (entry.is_input || entry.is_addr_refreshable) {
+      continue;
+    }
+    const std::string tensor_var_name = "output_data_" + std::to_string(entry.index) + "_tensor";
+    const std::string addr_var_name = "dev_output" + std::to_string(entry.index) + "_ptr";
+    auto tensor = ast_.Var("auto", tensor_var_name);
+    auto dev_addr = ast_.Var("auto", addr_var_name);
+    body.push_back(ast_.VarDecl(dev_addr, GetAddr(ast_.Var("void *", "total_dev_mem_ptr_"), entry.memory_offset)));
+    if (is_async) {
+      body.push_back(ChkStatus(AclrtMemcpyAsync(tensor.Arrow("GetAddr")(), tensor.Arrow("GetSize")(), dev_addr,
+                                                tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE",
+                                                exe_stream)));
+    } else {
+      body.push_back(ChkStatus(AclrtMemcpy(tensor.Arrow("GetAddr")(), tensor.Arrow("GetSize")(), dev_addr,
+                                           tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE")));
+    }
+  }
 }
 
 Status LoadAndRunFileCodeGenerator::BuildCommonHelperFunctions(std::vector<DeclNode *> &items) const {

@@ -857,6 +857,472 @@ class CustomEndGraphTaskCodeBuilder : public EndGraphTaskCodeBuilder {
   }
 };
 
+// 构造 NoTask ConcatD 输出复用图：
+// data0 -> add0 -> ConcatD(NoTask) -> NetOutput
+// data1 -> add1 -^
+// add0/add1 输出连续，对应 NetOutput 基址 1024。
+GeRootModelPtr CreateGeRootModelWithNoTaskConcatOutput() {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  GeTensorDesc tensor_desc(GeShape({1, 32}), FORMAT_ND, DT_FLOAT);
+
+  auto data0_desc = std::make_shared<OpDesc>("data0", DATA);
+  (void)data0_desc->AddOutputDesc(tensor_desc);
+  auto data0 = graph->AddNode(data0_desc);
+
+  auto data1_desc = std::make_shared<OpDesc>("data1", DATA);
+  (void)data1_desc->AddOutputDesc(tensor_desc);
+  auto data1 = graph->AddNode(data1_desc);
+
+  auto add0_desc = std::make_shared<OpDesc>("add0", "Add");
+  (void)add0_desc->AddInputDesc("x", tensor_desc);
+  (void)add0_desc->AddOutputDesc("y", tensor_desc);
+  add0_desc->AppendIrInput("x", kIrInputRequired);
+  add0_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add0 = graph->AddNode(add0_desc);
+
+  auto add1_desc = std::make_shared<OpDesc>("add1", "Add");
+  (void)add1_desc->AddInputDesc("x", tensor_desc);
+  (void)add1_desc->AddOutputDesc("y", tensor_desc);
+  add1_desc->AppendIrInput("x", kIrInputRequired);
+  add1_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add1 = graph->AddNode(add1_desc);
+
+  auto concat_desc = std::make_shared<OpDesc>("concat_notask", "ConcatD");
+  (void)concat_desc->AddInputDesc("x0", tensor_desc);
+  (void)concat_desc->AddInputDesc("x1", tensor_desc);
+  GeTensorDesc out_tensor_desc(GeShape({1, 64}), FORMAT_ND, DT_FLOAT);
+  (void)concat_desc->AddOutputDesc("y", out_tensor_desc);
+  (void)AttrUtils::SetBool(concat_desc, ATTR_NAME_NOTASK, true);
+  (void)AttrUtils::SetBool(concat_desc, ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)AttrUtils::SetBool(concat_desc, ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
+  (void)AttrUtils::SetInt(concat_desc, ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  auto concat = graph->AddNode(concat_desc);
+
+  auto netoutput_desc = std::make_shared<OpDesc>("netoutput", NETOUTPUT);
+  (void)netoutput_desc->AddInputDesc(tensor_desc);
+  auto netoutput = graph->AddNode(netoutput_desc);
+
+  if ((data0 == nullptr) || (data1 == nullptr) || (add0 == nullptr) ||
+      (add1 == nullptr) || (concat == nullptr) || (netoutput == nullptr)) {
+    return nullptr;
+  }
+  GraphUtils::AddEdge(data0->GetOutDataAnchor(0), add0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data1->GetOutDataAnchor(0), add1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add0->GetOutDataAnchor(0), concat->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add1->GetOutDataAnchor(0), concat->GetInDataAnchor(1));
+  GraphUtils::AddEdge(concat->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  graph->TopologicalSorting();
+
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model =
+      builder.AddTaskDef("add0", gert::AiCoreTaskDefFaker("add0_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .FakeTbeBin({"Add"})
+             .BuildGeRootModel();
+  auto &compute_graph = ge_root_model->GetRootGraph();
+  compute_graph->SetGraphUnknownFlag(false);
+
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc == nullptr) {
+      return nullptr;
+    }
+    if (op_desc->GetType() == DATA) {
+      if (op_desc->GetName() == "data0") {
+        op_desc->SetOutputOffset({512});
+      } else {
+        op_desc->SetOutputOffset({768});
+      }
+    } else if (op_desc->GetType() == "Add") {
+      if (op_desc->GetName() == "add0") {
+        op_desc->SetInputOffset({512});
+        op_desc->SetOutputOffset({1024});
+      } else {
+        op_desc->SetInputOffset({768});
+        op_desc->SetOutputOffset({1536});
+      }
+    } else if (op_desc->GetType() == "ConcatD") {
+      op_desc->SetInputOffset({1024, 1536});
+      op_desc->SetOutputOffset({1024});
+    } else if (op_desc->GetType() == NETOUTPUT) {
+      op_desc->SetInputOffset({1024});
+    }
+  }
+
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  std::vector<uint64_t> weights_value(64, 1024);
+  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 4096);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  return ge_root_model;
+}
+
+// 构造第二段输入偏移小于基址的 NoTask ConcatD 图。
+GeRootModelPtr CreateGeRootModelWithNoTaskConcatNegativeOffset() {
+  auto ge_root_model = CreateGeRootModelWithNoTaskConcatOutput();
+  if (ge_root_model == nullptr) {
+    return nullptr;
+  }
+  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
+  if (name_to_ge_model.empty()) {
+    return nullptr;
+  }
+  const auto ge_model = name_to_ge_model.begin()->second;
+  const auto compute_graph = ge_model->GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  // add1 输出偏移小于 NetOutput 基址，展开后产生负偏移。
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if ((op_desc != nullptr) && (op_desc->GetName() == "add1")) {
+      op_desc->SetOutputOffset({800});
+      break;
+    }
+  }
+  return ge_root_model;
+}
+
+GeRootModelPtr CreateGeRootModelWithNoTaskConcatOutputReuseDimOne() {
+  auto ge_root_model = CreateGeRootModelWithNoTaskConcatOutput();
+  if (ge_root_model == nullptr) {
+    return nullptr;
+  }
+  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
+  if (name_to_ge_model.empty()) {
+    return nullptr;
+  }
+  const auto ge_model = name_to_ge_model.begin()->second;
+  const auto compute_graph = ge_model->GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if ((op_desc != nullptr) && (op_desc->GetName() == "concat_notask")) {
+      (void)AttrUtils::SetInt(op_desc, ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 1);
+      break;
+    }
+  }
+  return ge_root_model;
+}
+
+// 构造 2 个模型输出：output[0] 经过 NoTask ConcatD，output[1] 为普通输出。
+// data0 -> add0 -> ConcatD(NoTask) -> NetOutput.output[0]
+//         add1 -^
+// data1 -> add2 -----------------------> NetOutput.output[1]
+// 展开后 output_count 仍为 2。
+GeRootModelPtr CreateGeRootModelWithMixedOutputs() {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  GeTensorDesc tensor_desc(GeShape({1, 32}), FORMAT_ND, DT_FLOAT);
+
+  auto data0_desc = std::make_shared<OpDesc>("data0", DATA);
+  (void)data0_desc->AddOutputDesc(tensor_desc);
+  auto data0 = graph->AddNode(data0_desc);
+
+  auto data1_desc = std::make_shared<OpDesc>("data1", DATA);
+  (void)data1_desc->AddOutputDesc(tensor_desc);
+  auto data1 = graph->AddNode(data1_desc);
+
+  auto add0_desc = std::make_shared<OpDesc>("add0", "Add");
+  (void)add0_desc->AddInputDesc("x", tensor_desc);
+  (void)add0_desc->AddOutputDesc("y", tensor_desc);
+  add0_desc->AppendIrInput("x", kIrInputRequired);
+  add0_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add0 = graph->AddNode(add0_desc);
+
+  auto add1_desc = std::make_shared<OpDesc>("add1", "Add");
+  (void)add1_desc->AddInputDesc("x", tensor_desc);
+  (void)add1_desc->AddOutputDesc("y", tensor_desc);
+  add1_desc->AppendIrInput("x", kIrInputRequired);
+  add1_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add1 = graph->AddNode(add1_desc);
+
+  auto add2_desc = std::make_shared<OpDesc>("add2", "Add");
+  (void)add2_desc->AddInputDesc("x", tensor_desc);
+  (void)add2_desc->AddOutputDesc("y", tensor_desc);
+  add2_desc->AppendIrInput("x", kIrInputRequired);
+  add2_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add2 = graph->AddNode(add2_desc);
+
+  auto concat_desc = std::make_shared<OpDesc>("concat_notask", "ConcatD");
+  (void)concat_desc->AddInputDesc("x0", tensor_desc);
+  (void)concat_desc->AddInputDesc("x1", tensor_desc);
+  GeTensorDesc out_tensor_desc(GeShape({1, 64}), FORMAT_ND, DT_FLOAT);
+  (void)concat_desc->AddOutputDesc("y", out_tensor_desc);
+  (void)AttrUtils::SetBool(concat_desc, ATTR_NAME_NOTASK, true);
+  (void)AttrUtils::SetBool(concat_desc, ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)AttrUtils::SetBool(concat_desc, ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
+  (void)AttrUtils::SetInt(concat_desc, ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  auto concat = graph->AddNode(concat_desc);
+
+  auto netoutput_desc = std::make_shared<OpDesc>("netoutput", NETOUTPUT);
+  (void)netoutput_desc->AddInputDesc(out_tensor_desc);
+  (void)netoutput_desc->AddInputDesc(tensor_desc);
+  auto netoutput = graph->AddNode(netoutput_desc);
+
+  if ((data0 == nullptr) || (data1 == nullptr) || (add0 == nullptr) ||
+      (add1 == nullptr) || (add2 == nullptr) || (concat == nullptr) || (netoutput == nullptr)) {
+    return nullptr;
+  }
+  GraphUtils::AddEdge(data0->GetOutDataAnchor(0), add0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data0->GetOutDataAnchor(0), add1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data1->GetOutDataAnchor(0), add2->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add0->GetOutDataAnchor(0), concat->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add1->GetOutDataAnchor(0), concat->GetInDataAnchor(1));
+  GraphUtils::AddEdge(concat->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add2->GetOutDataAnchor(0), netoutput->GetInDataAnchor(1));
+  graph->TopologicalSorting();
+
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model =
+      builder.AddTaskDef("add0", gert::AiCoreTaskDefFaker("add0_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .AddTaskDef("add2", gert::AiCoreTaskDefFaker("add2_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .FakeTbeBin({"Add"})
+             .BuildGeRootModel();
+  auto &compute_graph = ge_root_model->GetRootGraph();
+  compute_graph->SetGraphUnknownFlag(false);
+
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc == nullptr) {
+      return nullptr;
+    }
+    if (op_desc->GetType() == DATA) {
+      if (op_desc->GetName() == "data0") {
+        op_desc->SetOutputOffset({512});
+      } else {
+        op_desc->SetOutputOffset({768});
+      }
+    } else if (op_desc->GetType() == "Add") {
+      if (op_desc->GetName() == "add0") {
+        op_desc->SetInputOffset({512});
+        op_desc->SetOutputOffset({1024});
+      } else if (op_desc->GetName() == "add1") {
+        op_desc->SetInputOffset({512});
+        op_desc->SetOutputOffset({1536});
+      } else {
+        op_desc->SetInputOffset({768});
+        op_desc->SetOutputOffset({2048});
+      }
+    } else if (op_desc->GetType() == "ConcatD") {
+      op_desc->SetInputOffset({1024, 1536});
+      op_desc->SetOutputOffset({1024});
+    } else if (op_desc->GetType() == NETOUTPUT) {
+      op_desc->SetInputOffset({1024, 2048});
+    }
+  }
+
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  std::vector<uint64_t> weights_value(64, 1024);
+  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 4096);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  return ge_root_model;
+}
+
+// 构造 PhonyConcat NoTask 输出复用图：
+// data0 -> add0 -> PhonyConcat -> NetOutput
+// data1 -> add1 -^
+GeRootModelPtr CreateGeRootModelWithPhonyConcatOutput() {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  GeTensorDesc tensor_desc(GeShape({1, 32}), FORMAT_ND, DT_FLOAT);
+
+  auto data0_desc = std::make_shared<OpDesc>("data0", DATA);
+  (void)data0_desc->AddOutputDesc(tensor_desc);
+  auto data0 = graph->AddNode(data0_desc);
+
+  auto data1_desc = std::make_shared<OpDesc>("data1", DATA);
+  (void)data1_desc->AddOutputDesc(tensor_desc);
+  auto data1 = graph->AddNode(data1_desc);
+
+  auto add0_desc = std::make_shared<OpDesc>("add0", "Add");
+  (void)add0_desc->AddInputDesc("x", tensor_desc);
+  (void)add0_desc->AddOutputDesc("y", tensor_desc);
+  add0_desc->AppendIrInput("x", kIrInputRequired);
+  add0_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add0 = graph->AddNode(add0_desc);
+
+  auto add1_desc = std::make_shared<OpDesc>("add1", "Add");
+  (void)add1_desc->AddInputDesc("x", tensor_desc);
+  (void)add1_desc->AddOutputDesc("y", tensor_desc);
+  add1_desc->AppendIrInput("x", kIrInputRequired);
+  add1_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add1 = graph->AddNode(add1_desc);
+
+  // PhonyConcat 设置 NoTask 相关属性，不生成 task。
+  auto phony_desc = std::make_shared<OpDesc>("phony_concat", PHONYCONCAT);
+  (void)phony_desc->AddInputDesc("x0", tensor_desc);
+  (void)phony_desc->AddInputDesc("x1", tensor_desc);
+  GeTensorDesc out_tensor_desc(GeShape({1, 64}), FORMAT_ND, DT_FLOAT);
+  (void)phony_desc->AddOutputDesc("y", out_tensor_desc);
+  (void)AttrUtils::SetBool(phony_desc, ATTR_NAME_NOTASK, true);
+  (void)AttrUtils::SetBool(phony_desc, ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)AttrUtils::SetBool(phony_desc, ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
+  (void)AttrUtils::SetInt(phony_desc, ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  auto phony = graph->AddNode(phony_desc);
+
+  auto netoutput_desc = std::make_shared<OpDesc>("netoutput", NETOUTPUT);
+  (void)netoutput_desc->AddInputDesc(out_tensor_desc);
+  auto netoutput = graph->AddNode(netoutput_desc);
+
+  if ((data0 == nullptr) || (data1 == nullptr) || (add0 == nullptr) ||
+      (add1 == nullptr) || (phony == nullptr) || (netoutput == nullptr)) {
+    return nullptr;
+  }
+  GraphUtils::AddEdge(data0->GetOutDataAnchor(0), add0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data1->GetOutDataAnchor(0), add1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add0->GetOutDataAnchor(0), phony->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add1->GetOutDataAnchor(0), phony->GetInDataAnchor(1));
+  GraphUtils::AddEdge(phony->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  graph->TopologicalSorting();
+
+  // 只有 add0/add1 是真实 task。
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model =
+      builder.AddTaskDef("add0", gert::AiCoreTaskDefFaker("add0_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .FakeTbeBin({"Add"})
+             .BuildGeRootModel();
+  auto &compute_graph = ge_root_model->GetRootGraph();
+  compute_graph->SetGraphUnknownFlag(false);
+
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc == nullptr) {
+      return nullptr;
+    }
+    if (op_desc->GetType() == DATA) {
+      if (op_desc->GetName() == "data0") {
+        op_desc->SetOutputOffset({512});
+      } else {
+        op_desc->SetOutputOffset({768});
+      }
+    } else if (op_desc->GetType() == "Add") {
+      if (op_desc->GetName() == "add0") {
+        op_desc->SetInputOffset({512});
+        op_desc->SetOutputOffset({1024});
+      } else if (op_desc->GetName() == "add1") {
+        op_desc->SetInputOffset({768});
+        op_desc->SetOutputOffset({1536});
+      }
+    } else if (op_desc->GetType() == PHONYCONCAT) {
+      op_desc->SetInputOffset({1024, 1536});
+      op_desc->SetOutputOffset({1024});
+    } else if (op_desc->GetType() == NETOUTPUT) {
+      op_desc->SetInputOffset({1024});
+    }
+  }
+
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  std::vector<uint64_t> weights_value(64, 1024);
+  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 4096);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  return ge_root_model;
+}
+
+// 构造两个根 NetOutput，验证输出索引连续。
+// data0 -> add0 -> NetOutput0.output[0]
+// data1 -> add1 -> NetOutput1.output[0]
+GeRootModelPtr CreateGeRootModelWithTwoNetOutputs() {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  GeTensorDesc tensor_desc(GeShape({1, 32}), FORMAT_ND, DT_FLOAT);
+
+  auto data0_desc = std::make_shared<OpDesc>("data0", DATA);
+  (void)data0_desc->AddOutputDesc(tensor_desc);
+  auto data0 = graph->AddNode(data0_desc);
+
+  auto data1_desc = std::make_shared<OpDesc>("data1", DATA);
+  (void)data1_desc->AddOutputDesc(tensor_desc);
+  auto data1 = graph->AddNode(data1_desc);
+
+  auto add0_desc = std::make_shared<OpDesc>("add0", "Add");
+  (void)add0_desc->AddInputDesc("x", tensor_desc);
+  (void)add0_desc->AddOutputDesc("y", tensor_desc);
+  add0_desc->AppendIrInput("x", kIrInputRequired);
+  add0_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add0 = graph->AddNode(add0_desc);
+
+  auto add1_desc = std::make_shared<OpDesc>("add1", "Add");
+  (void)add1_desc->AddInputDesc("x", tensor_desc);
+  (void)add1_desc->AddOutputDesc("y", tensor_desc);
+  add1_desc->AppendIrInput("x", kIrInputRequired);
+  add1_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add1 = graph->AddNode(add1_desc);
+
+  auto netoutput0_desc = std::make_shared<OpDesc>("netoutput0", NETOUTPUT);
+  (void)netoutput0_desc->AddInputDesc(tensor_desc);
+  auto netoutput0 = graph->AddNode(netoutput0_desc);
+
+  auto netoutput1_desc = std::make_shared<OpDesc>("netoutput1", NETOUTPUT);
+  (void)netoutput1_desc->AddInputDesc(tensor_desc);
+  auto netoutput1 = graph->AddNode(netoutput1_desc);
+
+  if ((data0 == nullptr) || (data1 == nullptr) || (add0 == nullptr) ||
+      (add1 == nullptr) || (netoutput0 == nullptr) || (netoutput1 == nullptr)) {
+    return nullptr;
+  }
+  GraphUtils::AddEdge(data0->GetOutDataAnchor(0), add0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data1->GetOutDataAnchor(0), add1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add0->GetOutDataAnchor(0), netoutput0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add1->GetOutDataAnchor(0), netoutput1->GetInDataAnchor(0));
+  graph->TopologicalSorting();
+
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model =
+      builder.AddTaskDef("add0", gert::AiCoreTaskDefFaker("add0_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .FakeTbeBin({"Add"})
+             .BuildGeRootModel();
+  auto &compute_graph = ge_root_model->GetRootGraph();
+  compute_graph->SetGraphUnknownFlag(false);
+
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc == nullptr) {
+      return nullptr;
+    }
+    if (op_desc->GetType() == DATA) {
+      if (op_desc->GetName() == "data0") {
+        op_desc->SetOutputOffset({512});
+      } else {
+        op_desc->SetOutputOffset({768});
+      }
+    } else if (op_desc->GetType() == "Add") {
+      if (op_desc->GetName() == "add0") {
+        op_desc->SetInputOffset({512});
+        op_desc->SetOutputOffset({1024});
+      } else {
+        op_desc->SetInputOffset({768});
+        op_desc->SetOutputOffset({2048});
+      }
+    } else if (op_desc->GetType() == NETOUTPUT) {
+      if (op_desc->GetName() == "netoutput0") {
+        op_desc->SetInputOffset({1024});
+      } else {
+        op_desc->SetInputOffset({2048});
+      }
+    }
+  }
+
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  std::vector<uint64_t> weights_value(64, 1024);
+  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 4096);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  return ge_root_model;
+}
+
 Status BuildCodegenModel(const GeRootModelPtr &ge_root_model, Om2CodegenModel &doc,
                          std::vector<TaskCodeBuilderPtr> *task_generators_out = nullptr,
                          Om2ConstMetas *const_metas_out = nullptr) {
@@ -1672,5 +2138,142 @@ TEST_F(Om2CodegenModelBuilderUt, BuildKernelRegistry_TFAicpu_DuplicateOpType_Ok)
   // Two TF AiCPU tasks with same op_type "Add" should only register once + TF session
   ASSERT_EQ(doc.kernel_registry.binaries.size(), 2U);
   EXPECT_EQ(doc.kernel_registry.func_handle_indices.count("Add"), 1U);
+}
+
+TEST_F(Om2CodegenModelBuilderUt, BuildModelIo_NoTaskConcat_ExpandOk) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithNoTaskConcatOutput();
+  ASSERT_NE(ge_root_model, nullptr);
+  Om2CodegenModel doc;
+  ASSERT_EQ(BuildCodegenModel(ge_root_model, doc), SUCCESS);
+
+  // 2 个输入 + 2 个展开输出项。
+  ASSERT_EQ(doc.model_io.entries.size(), 4U);
+  EXPECT_EQ(doc.model_io.input_count, 2U);
+  EXPECT_EQ(doc.model_io.output_count, 1U);  // 真实模型输出数不随展开增加
+
+  // 输入项：data0 offset=512，data1 offset=768。
+  EXPECT_EQ(doc.model_io.entries[0].is_input, true);
+  EXPECT_EQ(doc.model_io.entries[0].memory_offset, 512);
+  EXPECT_EQ(doc.model_io.entries[0].addr_offset, 0);
+
+  EXPECT_EQ(doc.model_io.entries[1].is_input, true);
+  EXPECT_EQ(doc.model_io.entries[1].memory_offset, 768);
+  EXPECT_EQ(doc.model_io.entries[1].addr_offset, 0);
+
+  // 输出项 0：add0 输出，addr_offset=0。
+  EXPECT_EQ(doc.model_io.entries[2].is_input, false);
+  EXPECT_EQ(doc.model_io.entries[2].index, 0U);
+  EXPECT_EQ(doc.model_io.entries[2].memory_offset, 1024);
+  EXPECT_EQ(doc.model_io.entries[2].addr_offset, 0);
+
+  // 输出项 1：add1 输出，addr_offset=512。
+  EXPECT_EQ(doc.model_io.entries[3].is_input, false);
+  EXPECT_EQ(doc.model_io.entries[3].index, 0U);
+  EXPECT_EQ(doc.model_io.entries[3].memory_offset, 1536);
+  EXPECT_EQ(doc.model_io.entries[3].addr_offset, 512);
+
+  // host_args_offsets 数量与 entries 对齐。
+  ASSERT_EQ(doc.args_table.host_args_offsets.size(), doc.model_io.entries.size());
+}
+
+TEST_F(Om2CodegenModelBuilderUt, BuildModelIo_NoTaskConcat_NegativeOffset_Fail) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithNoTaskConcatNegativeOffset();
+  ASSERT_NE(ge_root_model, nullptr);
+  Om2CodegenModel doc;
+  ASSERT_EQ(BuildCodegenModel(ge_root_model, doc), PARAM_INVALID);
+}
+
+TEST_F(Om2CodegenModelBuilderUt, BuildModelIo_NoTaskConcatReuseDimOne_CopyOnly) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithNoTaskConcatOutputReuseDimOne();
+  ASSERT_NE(ge_root_model, nullptr);
+  Om2CodegenModel doc;
+  ASSERT_EQ(BuildCodegenModel(ge_root_model, doc), SUCCESS);
+
+  // 2 个输入 + 1 个拷贝输出；dim=1 不展开地址刷新。
+  ASSERT_EQ(doc.model_io.entries.size(), 3U);
+  EXPECT_EQ(doc.model_io.input_count, 2U);
+  EXPECT_EQ(doc.model_io.output_count, 1U);
+
+  EXPECT_EQ(doc.model_io.entries[2].is_input, false);
+  EXPECT_EQ(doc.model_io.entries[2].index, 0U);
+  EXPECT_EQ(doc.model_io.entries[2].memory_offset, 1024);
+  EXPECT_EQ(doc.model_io.entries[2].addr_offset, 0);
+  EXPECT_FALSE(doc.model_io.entries[2].is_addr_refreshable);
+
+  ASSERT_EQ(doc.args_table.host_args_offsets.size(), doc.model_io.entries.size());
+}
+
+TEST_F(Om2CodegenModelBuilderUt, BuildModelIo_MixedOutputs_OutputCountCorrect) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithMixedOutputs();
+  ASSERT_NE(ge_root_model, nullptr);
+  Om2CodegenModel doc;
+  ASSERT_EQ(BuildCodegenModel(ge_root_model, doc), SUCCESS);
+
+  // 2 个输入 + 2 个展开输出项 + 1 个普通输出项。
+  ASSERT_EQ(doc.model_io.entries.size(), 5U);
+  EXPECT_EQ(doc.model_io.input_count, 2U);
+  EXPECT_EQ(doc.model_io.output_count, 2U);  // 真实模型输出数为 2
+
+  // output[0] 展开项：index=0。
+  EXPECT_EQ(doc.model_io.entries[2].index, 0U);
+  EXPECT_EQ(doc.model_io.entries[2].memory_offset, 1024);
+  EXPECT_EQ(doc.model_io.entries[2].addr_offset, 0);
+
+  EXPECT_EQ(doc.model_io.entries[3].index, 0U);
+  EXPECT_EQ(doc.model_io.entries[3].memory_offset, 1536);
+  EXPECT_EQ(doc.model_io.entries[3].addr_offset, 512);
+
+  // output[1] 普通项：index=1。
+  EXPECT_EQ(doc.model_io.entries[4].index, 1U);
+  EXPECT_EQ(doc.model_io.entries[4].memory_offset, 2048);
+  EXPECT_EQ(doc.model_io.entries[4].addr_offset, 0);
+}
+
+TEST_F(Om2CodegenModelBuilderUt, BuildModelIo_PhonyConcat_ExpandOk) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithPhonyConcatOutput();
+  ASSERT_NE(ge_root_model, nullptr);
+  Om2CodegenModel doc;
+  ASSERT_EQ(BuildCodegenModel(ge_root_model, doc), SUCCESS);
+
+  // 2 个输入 + 2 个 PhonyConcat 展开输出项。
+  ASSERT_EQ(doc.model_io.entries.size(), 4U);
+  EXPECT_EQ(doc.model_io.input_count, 2U);
+  EXPECT_EQ(doc.model_io.output_count, 1U);  // 真实模型输出数不随展开增加
+
+  // 输出项 0：PhonyConcat 的 add0 输入。
+  EXPECT_EQ(doc.model_io.entries[2].is_input, false);
+  EXPECT_EQ(doc.model_io.entries[2].index, 0U);
+  EXPECT_EQ(doc.model_io.entries[2].memory_offset, 1024);
+  EXPECT_EQ(doc.model_io.entries[2].addr_offset, 0);
+
+  // 输出项 1：PhonyConcat 的 add1 输入。
+  EXPECT_EQ(doc.model_io.entries[3].is_input, false);
+  EXPECT_EQ(doc.model_io.entries[3].index, 0U);
+  EXPECT_EQ(doc.model_io.entries[3].memory_offset, 1536);
+  EXPECT_EQ(doc.model_io.entries[3].addr_offset, 512);
+
+  ASSERT_EQ(doc.args_table.host_args_offsets.size(), doc.model_io.entries.size());
+}
+
+TEST_F(Om2CodegenModelBuilderUt, BuildModelIo_TwoNetOutputs_DenseIndexing) {
+  GeRootModelPtr ge_root_model = CreateGeRootModelWithTwoNetOutputs();
+  ASSERT_NE(ge_root_model, nullptr);
+  Om2CodegenModel doc;
+  ASSERT_EQ(BuildCodegenModel(ge_root_model, doc), SUCCESS);
+
+  // 2 个输入 + 2 个输出。
+  ASSERT_EQ(doc.model_io.entries.size(), 4U);
+  EXPECT_EQ(doc.model_io.input_count, 2U);
+  EXPECT_EQ(doc.model_io.output_count, 2U);  // 两个 NetOutput 各有一个真实输出
+
+  // netoutput0 输出：index=0。
+  EXPECT_EQ(doc.model_io.entries[2].is_input, false);
+  EXPECT_EQ(doc.model_io.entries[2].index, 0U);
+  EXPECT_EQ(doc.model_io.entries[2].memory_offset, 1024);
+
+  // netoutput1 输出：index=1，索引不重置。
+  EXPECT_EQ(doc.model_io.entries[3].is_input, false);
+  EXPECT_EQ(doc.model_io.entries[3].index, 1U);
+  EXPECT_EQ(doc.model_io.entries[3].memory_offset, 2048);
 }
 }  // namespace ge

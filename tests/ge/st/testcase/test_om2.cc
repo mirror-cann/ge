@@ -11,6 +11,7 @@
 #include "framework/common/helper/om2_package_helper.h"
 #include "common/helper/om2/zip_archive_writer.h"
 #include "common/helper/om2/json_file.h"
+#include "framework/omg/omg.h"
 #include "framework/runtime/om2_model_executor.h"
 #include "ge/ge_ir_build.h"
 #include "api/aclgrph/option_utils.h"
@@ -36,6 +37,7 @@
 #include "graph/utils/tensor_utils.h"
 #include "graph/utils/file_utils.h"
 #include "graph_metadef/depends/checker/tensor_check_utils.h"
+#include "proto/ge_ir.pb.h"
 
 #include "graph/ge_local_context.h"
 #include "ge_runtime_stub/include/common/share_graph.h"
@@ -60,6 +62,15 @@ using AicpuExtInfo = aicpu::FWKAdapter::ExtInfo;
 using AsyncWaitInfo = aicpu::FWKAdapter::AsyncWait;
 using WorkSpaceInfo = aicpu::FWKAdapter::WorkSpaceInfo;
 using AicpuSessionInfo = SessionInfo;
+
+bool IsFileNonEmpty(const std::string &path) {
+  std::ifstream input(path, std::ios::in | std::ios::binary);
+  if (!input.is_open()) {
+    return false;
+  }
+  input.seekg(0, std::ios::end);
+  return input.good() && (input.tellg() > 0);
+}
 
 class ScopedEnvVar {
  public:
@@ -1009,6 +1020,37 @@ void CreateFakeOm2File(const std::string &work_dir, const std::string &output_fi
   ASSERT_EQ(mmAccess2(output_file.c_str(), M_F_OK), EOK);
 }
 
+std::string BuildValidOm2ProtoTxt() {
+  ge::proto::ModelDef model_def;
+  model_def.set_name("st_om2_model");
+  auto *graph = model_def.add_graph();
+  graph->set_name("main_graph");
+  auto *op = graph->add_op();
+  op->set_name("data0");
+  op->set_type("Data");
+  return model_def.DebugString();
+}
+
+void CreateMinimalOm2File(const std::string &path, const std::string &proto_content) {
+  ZipArchiveWriter writer(path);
+  ASSERT_TRUE(writer.IsMemFileOpened());
+  const std::string manifest = R"({"om2_version":"0","model_num":1})";
+  ASSERT_TRUE(writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+  ASSERT_TRUE(writer.WriteBytes("data/model_0/debug/ge_proto_00000000_graph_1_test.txt", proto_content.data(),
+                                proto_content.size(), true));
+  ASSERT_TRUE(writer.SaveModelDataToFile());
+  ASSERT_EQ(mmAccess2(path.c_str(), M_F_OK), EOK);
+}
+
+void CreateMinimalOm2FileWithoutProto(const std::string &path) {
+  ZipArchiveWriter writer(path);
+  ASSERT_TRUE(writer.IsMemFileOpened());
+  const std::string manifest = R"({"om2_version":"0","model_num":1})";
+  ASSERT_TRUE(writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
+  ASSERT_TRUE(writer.SaveModelDataToFile());
+  ASSERT_EQ(mmAccess2(path.c_str(), M_F_OK), EOK);
+}
+
 void ConstructOm2IoTensors(std::vector<gert::Tensor> &input_tensors, std::vector<gert::Tensor> &output_tensors,
                            std::vector<gert::Tensor *> &inputs, std::vector<gert::Tensor *> &outputs) {
   input_tensors.resize(2U);
@@ -1022,10 +1064,24 @@ void ConstructOm2IoTensors(std::vector<gert::Tensor> &input_tensors, std::vector
 
 void ExpectOm2ArchiveFiles(const RAIIZipArchive &archive, const std::set<std::string> &expect_files) {
   const auto file_names = archive.ListFiles();
-  EXPECT_EQ(file_names.size(), expect_files.size());
-  for (const auto &file_name : file_names) {
-    EXPECT_EQ(expect_files.count(file_name), 1);
+  // expect_files contains exact paths; debug files (ge_onnx_*.pbtxt, ge_proto_*.txt) are checked by pattern
+  std::set<std::string> expect_exact = expect_files;
+  int debug_pattern_count = 0;
+  for (const auto &f : file_names) {
+    if (f.find("debug/ge_onnx_") != std::string::npos && f.find(".pbtxt") != std::string::npos) {
+      ++debug_pattern_count;
+      continue;
+    }
+    if (f.find("debug/ge_proto_") != std::string::npos && f.find(".txt") != std::string::npos) {
+      ++debug_pattern_count;
+      continue;
+    }
+    EXPECT_EQ(expect_exact.count(f), 1) << "Unexpected file: " << f;
   }
+  EXPECT_EQ(debug_pattern_count, 2) << "Expected 2 debug files (ge_onnx_*.pbtxt + ge_proto_*.txt)";
+  // expect_files size = exact matches (no debug pattern entries expected in set)
+  const size_t exact_count = file_names.size() - static_cast<size_t>(debug_pattern_count);
+  EXPECT_EQ(exact_count, expect_exact.size());
 }
 
 void ExpectGeneratedMakefileSupportsEnvCompiler(const RAIIZipArchive &archive, const std::string &zip_base_name) {
@@ -1304,6 +1360,43 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
   ExpectGeneratedMakefileSupportsEnvCompiler(archive, kZipFileBaseName);
 }
 
+TEST_F(Om2St, ConvertOm2Model_Ok_ConvertGeneratedOm2ToJson) {
+  Om2PackageHelper om2_packager;
+  const auto ge_root_model = CreateGeRootModelWithAicoreOp();
+  ASSERT_NE(ge_root_model, nullptr);
+  ModelBufferData model_data;
+  const std::string output_file = PathUtils::Join({test_work_dir, kZipFileBaseName + "_json.om2"});
+  const std::string json_file = PathUtils::Join({test_work_dir, kZipFileBaseName + "_json.json"});
+  SyncKernelNameForAllModels(ge_root_model);
+  ASSERT_EQ(om2_packager.SaveToOmRootModel(ge_root_model, output_file, model_data, false), SUCCESS);
+
+  EXPECT_EQ(ConvertOm(output_file.c_str(), json_file.c_str(), true), SUCCESS);
+  EXPECT_TRUE(IsFileNonEmpty(json_file));
+}
+
+TEST_F(Om2St, ConvertOm2Model_Fail_DisplayModelInfoNotSupported) {
+  const std::string output_file = PathUtils::Join({test_work_dir, "minimal_no_display.om2"});
+  CreateMinimalOm2File(output_file, BuildValidOm2ProtoTxt());
+
+  EXPECT_NE(ConvertOm(output_file.c_str(), nullptr, false), SUCCESS);
+}
+
+TEST_F(Om2St, ConvertOm2Model_Fail_ConvertJsonNoProtoTxt) {
+  const std::string output_file = PathUtils::Join({test_work_dir, "minimal_no_proto.om2"});
+  const std::string json_file = PathUtils::Join({test_work_dir, "minimal_no_proto.json"});
+  CreateMinimalOm2FileWithoutProto(output_file);
+
+  EXPECT_NE(ConvertOm(output_file.c_str(), json_file.c_str(), true), SUCCESS);
+}
+
+TEST_F(Om2St, ConvertOm2Model_Fail_ConvertJsonInvalidProtoTxt) {
+  const std::string output_file = PathUtils::Join({test_work_dir, "minimal_bad_proto.om2"});
+  const std::string json_file = PathUtils::Join({test_work_dir, "minimal_bad_proto.json"});
+  CreateMinimalOm2File(output_file, "this is not valid proto text {{{}}}");
+
+  EXPECT_NE(ConvertOm(output_file.c_str(), json_file.c_str(), true), SUCCESS);
+}
+
 TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAtomicAicoreNode) {
   Om2PackageHelper om2_packager;
   const auto ge_root_model = CreateGeRootModelWithAtomicAicoreOp();
@@ -1564,10 +1657,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOp2) {
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o", "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",           "fake_test/manifest.json",
   };
-  EXPECT_EQ(file_names.size(), expect_files.size());
-  for (const auto &file_name : file_names) {
-    EXPECT_EQ(expect_files.count(file_name), 1);
-  }
+  ExpectOm2ArchiveFiles(archive, expect_files);
 }
 
 TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOpOfDynamicIo) {
@@ -1593,10 +1683,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOpOfDynamicIo) {
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o", "fake_test/data/model_0/model_meta.json",
       "fake_test/data/model_0/debug/op_attr.json",           "fake_test/manifest.json",
   };
-  EXPECT_EQ(file_names.size(), expect_files.size());
-  for (const auto &file_name : file_names) {
-    EXPECT_EQ(expect_files.count(file_name), 1);
-  }
+  ExpectOm2ArchiveFiles(archive, expect_files);
 }
 
 TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicpuOp) {
@@ -1627,10 +1714,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicpuOp) {
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
-  EXPECT_EQ(file_names.size(), expect_files.size());
-  for (const auto &file_name : file_names) {
-    EXPECT_EQ(expect_files.count(file_name), 1);
-  }
+  ExpectOm2ArchiveFiles(archive, expect_files);
 }
 
 TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCustAicpuOp) {
@@ -1661,9 +1745,14 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCustAicpuOp) {
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
-  EXPECT_EQ(file_names.size(), expect_files_without_cust_kernel.size() + 1U);
+  int debug_count = 0;
   bool found_cust_kernel = false;
   for (const auto &file_name : file_names) {
+    if (file_name.find("debug/ge_onnx_") != std::string::npos ||
+        file_name.find("debug/ge_proto_") != std::string::npos) {
+      ++debug_count;
+      continue;
+    }
     if ((file_name.find("fake_test/data/kernels_npu_arch/") != std::string::npos) &&
         (file_name.find("_CustAicpuKernel.o") != std::string::npos)) {
       found_cust_kernel = true;
@@ -1671,6 +1760,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCustAicpuOp) {
     }
     EXPECT_EQ(expect_files_without_cust_kernel.count(file_name), 1);
   }
+  EXPECT_EQ(debug_count, 2);
   EXPECT_TRUE(found_cust_kernel);
 }
 
@@ -1702,10 +1792,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithTfAicpuOp) {
       "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
-  EXPECT_EQ(file_names.size(), expect_files.size());
-  for (const auto &file_name : file_names) {
-    EXPECT_EQ(expect_files.count(file_name), 1);
-  }
+  ExpectOm2ArchiveFiles(archive, expect_files);
 }
 
 TEST_F(Om2St, LoadGeneratedOm2_Ok_ExecutorMainFlow) {

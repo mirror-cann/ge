@@ -1255,6 +1255,133 @@ GeRootModelPtr CreateGeRootModelWithCmoAddrTaskConstTensor() {
   return ge_root_model;
 }
 
+// 构造 NoTask ConcatD 输出复用图：
+// data0 -> add0 -> ConcatD(NoTask) -> NetOutput
+// data1 -> add1 -^
+GeRootModelPtr CreateGeRootModelWithNoTaskConcatOutput() {
+  auto graph = std::make_shared<ComputeGraph>("g1");
+  GeTensorDesc tensor_desc(GeShape({1, 32}), FORMAT_ND, DT_FLOAT);
+  TensorUtils::SetSize(tensor_desc, 128U);
+
+  auto data0_desc = std::make_shared<OpDesc>("data0", DATA);
+  (void)data0_desc->AddOutputDesc(tensor_desc);
+  auto data0 = graph->AddNode(data0_desc);
+
+  auto data1_desc = std::make_shared<OpDesc>("data1", DATA);
+  (void)data1_desc->AddOutputDesc(tensor_desc);
+  auto data1 = graph->AddNode(data1_desc);
+
+  auto add0_desc = std::make_shared<OpDesc>("add0", "Add");
+  (void)add0_desc->AddInputDesc("x", tensor_desc);
+  (void)add0_desc->AddOutputDesc("y", tensor_desc);
+  add0_desc->AppendIrInput("x", kIrInputRequired);
+  add0_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add0 = graph->AddNode(add0_desc);
+
+  auto add1_desc = std::make_shared<OpDesc>("add1", "Add");
+  (void)add1_desc->AddInputDesc("x", tensor_desc);
+  (void)add1_desc->AddOutputDesc("y", tensor_desc);
+  add1_desc->AppendIrInput("x", kIrInputRequired);
+  add1_desc->AppendIrOutput("y", kIrOutputRequired);
+  auto add1 = graph->AddNode(add1_desc);
+
+  GeTensorDesc out_tensor_desc(GeShape({1, 64}), FORMAT_ND, DT_FLOAT);
+  TensorUtils::SetSize(out_tensor_desc, 256U);
+  auto concat_desc = std::make_shared<OpDesc>("concat_notask", "ConcatD");
+  (void)concat_desc->AddInputDesc("x0", tensor_desc);
+  (void)concat_desc->AddInputDesc("x1", tensor_desc);
+  (void)concat_desc->AddOutputDesc("y", out_tensor_desc);
+  (void)AttrUtils::SetBool(concat_desc, ATTR_NAME_NOTASK, true);
+  (void)AttrUtils::SetBool(concat_desc, ATTR_NAME_OUTPUT_REUSE_INPUT, true);
+  (void)AttrUtils::SetBool(concat_desc, ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
+  (void)AttrUtils::SetInt(concat_desc, ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
+  auto concat = graph->AddNode(concat_desc);
+
+  auto netoutput_desc = std::make_shared<OpDesc>("netoutput", NETOUTPUT);
+  (void)netoutput_desc->AddInputDesc(out_tensor_desc);
+  auto netoutput = graph->AddNode(netoutput_desc);
+
+  if ((data0 == nullptr) || (data1 == nullptr) || (add0 == nullptr) ||
+      (add1 == nullptr) || (concat == nullptr) || (netoutput == nullptr)) {
+    return nullptr;
+  }
+  GraphUtils::AddEdge(data0->GetOutDataAnchor(0), add0->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data1->GetOutDataAnchor(0), add1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add0->GetOutDataAnchor(0), concat->GetInDataAnchor(0));
+  GraphUtils::AddEdge(add1->GetOutDataAnchor(0), concat->GetInDataAnchor(1));
+  GraphUtils::AddEdge(concat->GetOutDataAnchor(0), netoutput->GetInDataAnchor(0));
+  graph->TopologicalSorting();
+
+  gert::GeModelBuilder builder(graph);
+  auto ge_root_model =
+      builder.AddTaskDef("add0", gert::AiCoreTaskDefFaker("add0_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .AddTaskDef("add1", gert::AiCoreTaskDefFaker("add1_stub").ArgsFormat("{i_instance0*}{o_instance0*}"))
+             .FakeTbeBin({"Add"})
+             .BuildGeRootModel();
+  auto &compute_graph = ge_root_model->GetRootGraph();
+  compute_graph->SetGraphUnknownFlag(false);
+
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc == nullptr) {
+      return nullptr;
+    }
+    if (op_desc->GetType() == DATA) {
+      if (op_desc->GetName() == "data0") {
+        op_desc->SetOutputOffset({512});
+      } else {
+        op_desc->SetOutputOffset({768});
+      }
+    } else if (op_desc->GetType() == "Add") {
+      if (op_desc->GetName() == "add0") {
+        op_desc->SetInputOffset({512});
+        op_desc->SetOutputOffset({1024});
+      } else {
+        op_desc->SetInputOffset({768});
+        op_desc->SetOutputOffset({1536});
+      }
+    } else if (op_desc->GetType() == "ConcatD") {
+      op_desc->SetInputOffset({1024, 1536});
+      op_desc->SetOutputOffset({1024});
+    } else if (op_desc->GetType() == NETOUTPUT) {
+      op_desc->SetInputOffset({1024});
+    }
+  }
+
+  const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
+  std::vector<uint64_t> weights_value(64, 1024);
+  const size_t weight_size = weights_value.size() * sizeof(uint64_t);
+  ge_model->SetWeight(Buffer::CopyFrom(reinterpret_cast<uint8_t *>(weights_value.data()), weight_size));
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 4096);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_WEIGHT_SIZE, weight_size);
+  (void)AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
+  return ge_root_model;
+}
+
+GeRootModelPtr CreateGeRootModelWithNoTaskConcatOutputReuseDimOne() {
+  auto ge_root_model = CreateGeRootModelWithNoTaskConcatOutput();
+  if (ge_root_model == nullptr) {
+    return nullptr;
+  }
+  const auto &name_to_ge_model = ge_root_model->GetSubgraphInstanceNameToModel();
+  if (name_to_ge_model.empty()) {
+    return nullptr;
+  }
+  const auto ge_model = name_to_ge_model.begin()->second;
+  const auto compute_graph = ge_model->GetGraph();
+  if (compute_graph == nullptr) {
+    return nullptr;
+  }
+  for (const auto &node : compute_graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if ((op_desc != nullptr) && (op_desc->GetName() == "concat_notask")) {
+      (void)AttrUtils::SetInt(op_desc, ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 1);
+      break;
+    }
+  }
+  return ge_root_model;
+}
+
 ProgramGenerator CreateProgramGenerator(GeRootModelPtr &ge_root_model) {
   static AstContext ast_ctx;
   static AstBuildContext ast(ast_ctx);
@@ -2620,10 +2747,10 @@ aclError Om2Model::RunAsync(aclrtStream &exe_stream, size_t input_count, void **
     return ACL_ERROR_FAILURE;
   }
   auto input_data_0_tensor = reinterpret_cast<gert::Tensor *>(input_data[0]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
   auto input_data_1_tensor = reinterpret_cast<gert::Tensor *>(input_data[1]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0]);
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
@@ -2639,10 +2766,10 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
     return ACL_ERROR_FAILURE;
   }
   auto input_data_0_tensor = reinterpret_cast<gert::Tensor *>(input_data[0]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
   auto input_data_1_tensor = reinterpret_cast<gert::Tensor *>(input_data[1]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0]);
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
@@ -3108,10 +3235,10 @@ aclError Om2Model::RunAsync(aclrtStream &exe_stream, size_t input_count, void **
     return ACL_ERROR_FAILURE;
   }
   auto input_data_0_tensor = reinterpret_cast<gert::Tensor *>(input_data[0]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
   auto input_data_1_tensor = reinterpret_cast<gert::Tensor *>(input_data[1]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0]);
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
@@ -3127,10 +3254,10 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
     return ACL_ERROR_FAILURE;
   }
   auto input_data_0_tensor = reinterpret_cast<gert::Tensor *>(input_data[0]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
   auto input_data_1_tensor = reinterpret_cast<gert::Tensor *>(input_data[1]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0]);
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
@@ -3547,10 +3674,10 @@ aclError Om2Model::RunAsync(aclrtStream &exe_stream, size_t input_count, void **
     return ACL_ERROR_FAILURE;
   }
   auto input_data_0_tensor = reinterpret_cast<gert::Tensor *>(input_data[0]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
   auto input_data_1_tensor = reinterpret_cast<gert::Tensor *>(input_data[1]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0]);
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
@@ -3566,10 +3693,10 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
     return ACL_ERROR_FAILURE;
   }
   auto input_data_0_tensor = reinterpret_cast<gert::Tensor *>(input_data[0]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
   auto input_data_1_tensor = reinterpret_cast<gert::Tensor *>(input_data[1]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0]);
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
@@ -4055,10 +4182,10 @@ aclError Om2Model::RunAsync(aclrtStream &exe_stream, size_t input_count, void **
     return ACL_ERROR_FAILURE;
   }
   auto input_data_0_tensor = reinterpret_cast<gert::Tensor *>(input_data[0]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
   auto input_data_1_tensor = reinterpret_cast<gert::Tensor *>(input_data[1]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0]);
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
@@ -4074,10 +4201,10 @@ aclError Om2Model::Run(size_t input_count, void **input_data, size_t output_coun
     return ACL_ERROR_FAILURE;
   }
   auto input_data_0_tensor = reinterpret_cast<gert::Tensor *>(input_data[0]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
   auto input_data_1_tensor = reinterpret_cast<gert::Tensor *>(input_data[1]);
-  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0]);
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(0, reinterpret_cast<uintptr_t>(input_data_0_tensor->GetAddr())));
+  OM2_CHK_STATUS(args_table_.UpdateHostArgs(1, reinterpret_cast<uintptr_t>(input_data_1_tensor->GetAddr())));
   OM2_CHK_STATUS(args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr())));
 
   OM2_CHK_STATUS(args_table_.CopyArgsToDevice());
@@ -5495,6 +5622,67 @@ TEST_F(ProgramGeneratorUt, GenerateLoggingFunctionality_Ok) {
   // Makefile: include path for dlog_pub.h
   const auto &makefile = outputs[GeneratedFileIndex::kCMakeListsFile];
   EXPECT_NE(makefile.find("pkg_inc/base"), std::string::npos);
+}
+
+TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource_NoTaskConcatOutput_Ok) {
+  auto ge_root_model = CreateGeRootModelWithNoTaskConcatOutput();
+  ASSERT_NE(ge_root_model, nullptr);
+  auto generator = CreateProgramGenerator(ge_root_model);
+  std::map<GeneratedFileIndex, std::string> outputs;
+  ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
+
+  const auto &load_and_run_source = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
+  const auto &interface_source = outputs[GeneratedFileIndex::kInterfaceHeaderFile];
+
+  // 每个 Run/RunAsync 作用域只声明一次输出 tensor。
+  size_t first_decl = load_and_run_source.find("auto output_data_0_tensor = reinterpret_cast<gert::Tensor *>(output_data[0])");
+  EXPECT_NE(first_decl, std::string::npos);
+  // 第二次声明来自另一个方法，不应出现第三次。
+  size_t second_decl = load_and_run_source.find("auto output_data_0_tensor", first_decl + 1);
+  EXPECT_NE(second_decl, std::string::npos);  // 另一个方法中的声明
+  size_t third_decl = load_and_run_source.find("auto output_data_0_tensor", second_decl + 1);
+  EXPECT_EQ(third_decl, std::string::npos);  // 无第三次声明
+
+  // 首段直接刷新输出地址。
+  EXPECT_NE(load_and_run_source.find(
+      "args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()))"),
+      std::string::npos);
+
+  // 第二段刷新输出地址偏移。
+  EXPECT_NE(load_and_run_source.find(
+      "args_table_.UpdateHostArgs(3, (reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()) + 512))"),
+      std::string::npos);
+
+  // 输出个数保持真实模型输出数。
+  EXPECT_NE(interface_source.find("OUTPUT_NUM = 1"), std::string::npos);
+  EXPECT_NE(interface_source.find("INPUT_NUM = 2"), std::string::npos);
+}
+
+TEST_F(ProgramGeneratorUt, GenerateLoadAndRunSource_NoTaskConcatReuseDimOne_CopyOnly) {
+  auto ge_root_model = CreateGeRootModelWithNoTaskConcatOutputReuseDimOne();
+  ASSERT_NE(ge_root_model, nullptr);
+  auto generator = CreateProgramGenerator(ge_root_model);
+  std::map<GeneratedFileIndex, std::string> outputs;
+  ASSERT_EQ(GenerateProgramFiles(generator, outputs), SUCCESS);
+
+  const auto &load_and_run_source = outputs[GeneratedFileIndex::kLoadingAndRunningFile];
+
+  EXPECT_EQ(load_and_run_source.find(
+      "args_table_.UpdateHostArgs(2, reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()))"),
+      std::string::npos);
+  EXPECT_EQ(load_and_run_source.find(
+      "args_table_.UpdateHostArgs(3, (reinterpret_cast<uintptr_t>(output_data_0_tensor->GetAddr()) + 512))"),
+      std::string::npos);
+
+  const std::string execute_call = "aclmdlRIExecute(model_handle_, stream_sync_timeout)";
+  const std::string copy_call =
+      "aclrtMemcpy(output_data_0_tensor->GetAddr(), output_data_0_tensor->GetSize(), "
+      "dev_output0_ptr, output_data_0_tensor->GetSize(), ACL_MEMCPY_DEVICE_TO_DEVICE)";
+  const auto execute_pos = load_and_run_source.find(execute_call);
+  const auto copy_pos = load_and_run_source.find(copy_call);
+  EXPECT_NE(execute_pos, std::string::npos);
+  EXPECT_NE(copy_pos, std::string::npos);
+  EXPECT_LT(execute_pos, copy_pos);
 }
 
 }  // namespace ge

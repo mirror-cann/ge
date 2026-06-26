@@ -34,6 +34,8 @@
 #include "common/proto_util/proto_util.h"
 #include "graph/utils/op_type_utils.h"
 #include "graph_metadef/common/ge_common/util.h"
+#include "framework/common/helper/om2_package_helper.h"
+#include <google/protobuf/text_format.h>
 
 using std::ostringstream;
 
@@ -994,6 +996,27 @@ FMK_FUNC_HOST_VISIBILITY void PrintModelInfo(ge::proto::ModelDef *model_def, uin
   std::cout << "============ Display Model Info end   ============" << std::endl;
 }
 
+namespace {
+domi::Status ConvertOm2ToJson(const ModelData &model, const char *json_file) {
+  std::string proto_txt;
+  GE_ASSERT_SUCCESS(Om2PackageHelper::ExtractGraphProtoTxt(model.model_data, model.model_len, proto_txt),
+                    "[OM2] Failed to extract ge_proto txt from OM2 archive");
+
+  ge::proto::ModelDef model_def;
+  GE_ASSERT_TRUE(google::protobuf::TextFormat::ParseFromString(proto_txt, &model_def),
+                 "[OM2] Failed to parse ge_proto txt as ModelDef");
+
+  GetGroupName(model_def);
+  nlohmann::json j;
+  Pb2Json::Message2Json(model_def, kOmBlackFields, j, true);
+  GE_ASSERT_SUCCESS(ModelSaver::SaveJsonToFile(json_file, j),
+                    "[OM2] Failed to save JSON to %s", json_file);
+
+  GELOGI("[OM2] Successfully converted OM2 to JSON: %s", json_file);
+  return SUCCESS;
+}
+}  // namespace
+
 FMK_FUNC_HOST_VISIBILITY domi::Status ConvertOm(const char *model_file, const char *json_file, bool is_covert_to_json) {
   GE_CHECK_NOTNULL(model_file);
   // Mode 2 does not need to verify the priority, and a default value of 0 is passed
@@ -1007,6 +1030,29 @@ FMK_FUNC_HOST_VISIBILITY domi::Status ConvertOm(const char *model_file, const ch
       model.model_data = nullptr;
     }
   });
+
+  // Check if this is an OM2 (ZIP) file by looking at the magic bytes
+  constexpr size_t kZipMagicSize = 4U;
+  constexpr uint8_t kZipLocalFileHeaderMagic[kZipMagicSize] = {0x50U, 0x4BU, 0x03U, 0x04U};
+  const bool is_om2 = (model.model_data != nullptr) && (model.model_len >= kZipMagicSize) &&
+                      (std::memcmp(model.model_data, kZipLocalFileHeaderMagic, kZipMagicSize) == 0);
+  if (is_om2) {
+    if (!is_covert_to_json) {
+      GELOGE(ge::FAILED, "[OM2] Display model info is not supported for OM2 format yet.");
+      return ge::FAILED;
+    }
+    GE_CHECK_NOTNULL(json_file);
+    try {
+      return ConvertOm2ToJson(model, json_file);
+    } catch (const std::exception &e) {
+      const std::string reason = "an exception occurred while converting om2 file " + std::string(model_file) +
+          ": " + e.what();
+      REPORT_PREDEFINED_ERR_MSG("E10059", std::vector<const char *>({"stage", "reason"}),
+                                std::vector<const char *>({"Convert om2 model to JSON", reason.c_str()}));
+      GELOGE(FAILED, "[Save][Model]Convert om2 model to json failed, exception message : %s.", e.what());
+      return FAILED;
+    }
+  }
 
   try {
     // Parse the contents of the file to get the modeldef object
